@@ -11,8 +11,8 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "https://github.com/KingNEM/drowsiness.git",
-            "webRoot": "${C:drowsiness}"
+            "url": "https://github.com/KingNEM/driver-drowsiness.git",
+            "webRoot": "${C:driver-drowsiness}"
         }
     ]
 }
