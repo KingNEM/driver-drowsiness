@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 '''This script detects if a person is drowsy or not,using dlib and eye aspect ratio
 calculations. Uses webcam video feed as input.'''
 
@@ -107,7 +106,6 @@ while(True):
 #Finally when video capture is over, release the video capture and destroyAllWindows
 video_capture.release()
 cv2.destroyAllWindows()
-=======
 '''This script detects if a person is drowsy or not,using dlib and eye aspect ratio
 calculations. Uses webcam video feed as input.'''
 
@@ -216,4 +214,3 @@ while(True):
 #Finally when video capture is over, release the video capture and destroyAllWindows
 video_capture.release()
 cv2.destroyAllWindows()
->>>>>>> 2ffba228efc04a5edb248194aeaf42b98cbcfb0d

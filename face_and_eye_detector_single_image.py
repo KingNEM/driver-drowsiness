@@ -1,75 +1,103 @@
-<<<<<<< HEAD
 '''This script uses OpenCV's haarcascade (face and eye cascade) to detect face
 and eyes in a given input image.'''
 
 #Import necessary libraries
-import cv2 as cv
+import cv2 
+import dlib
 import numpy as np
+from scipy.spatial import distance as dist
+from imutils import face_utils
+# Open video file using a different backend
+cap = cv2.VideoCapture('C:/Users/NEM/drowsiness/face_and_eye_detector_single_image.py', cv2.CAP_FFMPEG)
+# Rest of the code for video processing
 
-#Load face cascade and hair cascade from haarcascades folder
-face_cascade = cv.CascadeClassifier("haarcascades/haarcascade_frontalface_default.xml")
-eye_cascade = cv.CascadeClassifier("haarcascades/haarcascade_eye.xml")
+# Define eye aspect ratio function
+def eye_aspect_ratio(eye):
+    # Compute the euclidean distances between the vertical eye landmarks
+    A = dist.euclidean(eye[1], eye[5])
+    B = dist.euclidean(eye[2], eye[4])
 
-#Read image in img and convert it to grayscale and store in gray.
-#Image is converted to grayscale, as face cascade doesn't require to operate on coloured images.
-img = cv.imread('images/test.jpeg')
-gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # Compute the euclidean distance between the horizontal eye landmarks
+    C = dist.euclidean(eye[0], eye[3])
 
-#Detect all faces in image.
-faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    # Compute the eye aspect ratio (EAR)
+    ear = (A + B) / (2.0 * C)
 
-#Draw a rectangle over the face, and detect eyes in faces
-for (x,y,w,h) in faces:
-    cv.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+    return ear
 
-    #ROI is region of interest with area having face inside it.
-    roi_gray = gray[y:y+h, x:x+w]
-    roi_color = img[y:y+h, x:x+w]
+# Define drowsiness detection function
+def detect_drowsiness(frame, detector, predictor, threshold):
+    # Convert the frame to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    #Detect eyes in face
-    eyes = eye_cascade.detectMultiScale(roi_gray)
+    # Detect the face in the frame using the Viola-Jones algorithm
+    rects = detector(gray, 0)
 
-    for (ex,ey,ew,eh) in eyes:
-        cv.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+    # Iterate over all the detected faces
+    for rect in rects:
+        # Predict the facial landmarks using the dlib shape predictor
+        shape = predictor(gray, rect)
+        shape = face_utils.shape_to_np(shape)
 
-cv.imshow('Image', img)
-cv.waitKey(0)
-cv.destroyAllWindows()
-=======
-'''This script uses OpenCV's haarcascade (face and eye cascade) to detect face
-and eyes in a given input image.'''
+        # Extract the left and right eye landmarks
+        leftEye = shape[lStart:lEnd]
+        rightEye = shape[rStart:rEnd]
 
-#Import necessary libraries
-import cv2 as cv
-import numpy as np
+        # Compute the eye aspect ratios
+        leftEAR = eye_aspect_ratio(leftEye)
+        rightEAR = eye_aspect_ratio(rightEye)
 
-#Load face cascade and hair cascade from haarcascades folder
-face_cascade = cv.CascadeClassifier("haarcascades/haarcascade_frontalface_default.xml")
-eye_cascade = cv.CascadeClassifier("haarcascades/haarcascade_eye.xml")
+        # Compute the average eye aspect ratio
+        ear = (leftEAR + rightEAR) / 2.0
 
-#Read image in img and convert it to grayscale and store in gray.
-#Image is converted to grayscale, as face cascade doesn't require to operate on coloured images.
-img = cv.imread('images/test.jpeg')
-gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        # Check if the EAR is below the threshold
+        if ear < threshold:
+            return True
 
-#Detect all faces in image.
-faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    # Return False if no drowsiness is detected
+    return False
 
-#Draw a rectangle over the face, and detect eyes in faces
-for (x,y,w,h) in faces:
-    cv.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+# Load the face detector and shape predictor
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
-    #ROI is region of interest with area having face inside it.
-    roi_gray = gray[y:y+h, x:x+w]
-    roi_color = img[y:y+h, x:x+w]
+# Define the left and right eye landmarks
+(lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
+(rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 
-    #Detect eyes in face
-    eyes = eye_cascade.detectMultiScale(roi_gray)
+# Define the drowsiness threshold
+threshold = 0.25
 
-    for (ex,ey,ew,eh) in eyes:
-        cv.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+# Start the video stream
+cap = cv2.VideoCapture(0)
 
-cv.imshow('Image', img)
-cv.waitKey(0)
-cv.destroyAllWindows()
->>>>>>> 2ffba228efc04a5edb248194aeaf42b98cbcfb0d
+while True:
+    # Capture a frame from the video stream
+    ret, frame = cap.read()
+
+    # Check if the frame was successfully captured
+    if not ret:
+        break
+
+    # Detect drowsiness in the frame
+    drowsy = detect_drowsiness(frame, detector, predictor, threshold)
+
+    # Display the result on the frame
+    if drowsy:
+        cv2.putText(frame, "DROWSY", (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+    else:
+        cv2.putText(frame, "AWAKE", (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+    # Show the frame
+    cv2.imshow("Frame", frame)
+
+    # Wait for key press
+    key = cv2.waitKey(1) & 0xFF
+
+    # Quit if the 'q' key is pressed
+    if key == ord("q"):
+        break
+
+# Release the video stream and close all windows
