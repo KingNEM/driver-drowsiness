@@ -94,7 +94,7 @@ Use `pip install -r requirements.txt`to install the given requirements.
 ## Usage
 
 ### Detect Face and Eyes in a Single Image
-Put your file to be detected in **images** folder with name **test.jpeg** or change the file path in `Line : 14 face_and_eye_detector_single_image.py` to your image file.                     
+Put your file to be detected in **images** folder with name **test.jpeg** or change the file path in `Line : 11 face_and_eye_detector_single_image.py` to your image file.                     
 Run script using:
 
     python face_and_eye_detector_single_image.py
@@ -109,4 +109,4 @@ Run script using:
     python drowsiness_detect.py
 
 The algorithm for Eye Aspect Ratio was taken from pyimagesearch.com blog, by Adrian RoseBrock.
->>>>>>> 2ffba228efc04a5edb248194aeaf42b98cbcfb0d
+
